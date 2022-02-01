@@ -230,7 +230,54 @@ class GPT(nn.Module):
         x = self.ln_f(x)
         return self.head(x)
 
+vocab_size = 500
+block_size = 256
+batch_size = 2
 model = GPT(GPTSmallConfig(500, 256))
 gm = fx.symbolic_trace(model)
+#gm = fx.symbolic_trace(model, concrete_args={"idx": torch.randint(0, vocab_size, (batch_size, block_size))})
 
-gm.graph.print_tabular()
+#gm.graph.print_tabular()
+
+"""
+Traceback (most recent call last):
+  File "test_gpt.py", line 234, in <module>
+    gm = fx.symbolic_trace(model)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 857, in symbolic_trace
+    graph = tracer.trace(root, concrete_args)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 566, in trace
+    self.create_node('output', 'output', (self.create_arg(fn(*args)),), {},
+  File "test_gpt.py", line 229, in forward
+    x = self.blocks(x)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 556, in module_call_wrapper
+    return self.call_module(mod, forward, args, kwargs)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 372, in call_module
+    return forward(*args, **kwargs)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 552, in forward
+    return _orig_module_call(mod, *args, **kwargs)
+  File "/raid/shenli/pytorch/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/raid/shenli/pytorch/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 556, in module_call_wrapper
+    return self.call_module(mod, forward, args, kwargs)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 372, in call_module
+    return forward(*args, **kwargs)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 552, in forward
+    return _orig_module_call(mod, *args, **kwargs)
+  File "/raid/shenli/pytorch/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "test_gpt.py", line 204, in forward
+    x = x + self.attn(self.ln1(x))
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 556, in module_call_wrapper
+    return self.call_module(mod, forward, args, kwargs)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 372, in call_module
+    return forward(*args, **kwargs)
+  File "/raid/shenli/pytorch/torch/fx/_symbolic_trace.py", line 552, in forward
+    return _orig_module_call(mod, *args, **kwargs)
+  File "/raid/shenli/pytorch/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "test_gpt.py", line 129, in forward
+    att = att.masked_fill(self.mask[:,:,:T,:T] == 0, float('-inf'))
+TypeError: slice indices must be integers or None or have an __index__ method
+"""
